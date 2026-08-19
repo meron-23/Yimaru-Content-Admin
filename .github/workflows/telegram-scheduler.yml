@@ -1,4 +1,4 @@
-name: Publish scheduled Telegram content
+name: Publish scheduled telegram content
 
 on:
   schedule:
