@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --telegram-bg-light: #7293b2;
+    --telegram-bg-dark: #0e1621;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Telegram Preview Custom Theme Classes */
+.telegram-preview-container {
+  background-color: #7293b2;
+  background-image: radial-gradient(#8ca7c4 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.telegram-preview-container.dark-tg {
+  background-color: #0e1621;
+  background-image: radial-gradient(#1e2c3a 1px, transparent 1px);
+}
+
+.telegram-bubble {
+  background: #ffffff;
+  color: #111827;
+  border-radius: 12px 12px 12px 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.telegram-preview-container.dark-tg .telegram-bubble {
+  background: #182533;
+  color: #f3f4f6;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.telegram-btn {
+  background: rgba(43, 130, 209, 0.12);
+  color: #2b82d1;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.telegram-btn:hover {
+  background: rgba(43, 130, 209, 0.22);
+}
+
+.telegram-preview-container.dark-tg .telegram-btn {
+  background: rgba(100, 181, 246, 0.15);
+  color: #64b5f6;
+}
+
+.telegram-preview-container.dark-tg .telegram-btn:hover {
+  background: rgba(100, 181, 246, 0.28);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Glassmorphism helpers */
+.glass-header {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-header {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+/* Status Badge Pulse */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
