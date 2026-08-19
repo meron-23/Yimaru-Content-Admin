@@ -1,12 +1,6 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getFirestore, type DocumentData } from 'firebase-admin/firestore';
-
-type ContentItem = DocumentData & {
-  id: string;
-  status?: string;
-  scheduledAt?: string;
-  imageUrl?: string;
-};
+import { getFirestore } from 'firebase-admin/firestore';
+import { renderTelegramPost, type ContentItem } from './telegram.js';
 
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -21,10 +15,9 @@ if (!getApps().length) {
 }
 
 const db = getFirestore();
-let renderTelegramPost: typeof import('./index.js')['renderTelegramPost'];
 
 async function sendTelegramPost(item: ContentItem): Promise<number> {
-  const rendered = renderTelegramPost(item as never);
+  const rendered = renderTelegramPost(item);
   const method = rendered.imageUrl ? 'sendPhoto' : 'sendMessage';
   const payload = rendered.imageUrl
     ? { chat_id: chatId, photo: rendered.imageUrl, caption: rendered.text, parse_mode: 'Markdown', reply_markup: rendered.buttons.length ? { inline_keyboard: [rendered.buttons] } : undefined }
@@ -43,7 +36,6 @@ async function sendTelegramPost(item: ContentItem): Promise<number> {
 }
 
 async function main(): Promise<void> {
-  ({ renderTelegramPost } = await import('./index.js'));
   const now = new Date().toISOString();
   const snapshot = await db.collection('content').where('status', '==', 'SCHEDULED').limit(100).get();
   let published = 0;
