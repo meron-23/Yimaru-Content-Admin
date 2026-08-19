@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ContentItem } from '../types/content';
 import { CONTENT_TYPE_METADATA } from '../utils/telegramTemplates';
-import { CalendarClock, Eye, Calendar, XCircle } from 'lucide-react';
+import { CalendarClock, Eye, Calendar, XCircle, Send } from 'lucide-react';
 
 interface UpcomingViewProps {
   items: ContentItem[];
@@ -15,7 +15,8 @@ export const UpcomingView: React.FC<UpcomingViewProps> = ({
   items,
   onPreviewItem,
   onScheduleItem,
-  onCancelSchedule
+  onCancelSchedule,
+  onPublishNow
 }) => {
   const scheduledItems = items
     .filter(i => i.status === 'SCHEDULED' && i.scheduledAt)
@@ -156,6 +157,14 @@ export const UpcomingView: React.FC<UpcomingViewProps> = ({
                         >
                           <Calendar className="w-3.5 h-3.5" />
                           <span>Edit Time</span>
+                        </button>
+
+                        <button
+                          onClick={() => onPublishNow(item.id)}
+                          className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold flex items-center gap-1.5"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Publish Now</span>
                         </button>
 
                         <button

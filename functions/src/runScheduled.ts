@@ -39,10 +39,17 @@ async function main(): Promise<void> {
   const now = new Date().toISOString();
   const snapshot = await db.collection('content').where('status', '==', 'SCHEDULED').limit(100).get();
   let published = 0;
+  let waiting = 0;
+
+  console.log(`Scheduler started at ${now}. Found ${snapshot.size} scheduled item(s).`);
 
   for (const document of snapshot.docs) {
     const item = { id: document.id, ...document.data() } as ContentItem;
-    if (!item.scheduledAt || item.scheduledAt > now) continue;
+    if (!item.scheduledAt || item.scheduledAt > now) {
+      waiting += 1;
+      console.log(`Waiting for ${item.id}; scheduledAt=${item.scheduledAt || 'missing'}`);
+      continue;
+    }
 
     try {
       const telegramMessageId = await sendTelegramPost(item);
@@ -63,7 +70,7 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log(`Scheduler finished. Published ${published} item(s).`);
+  console.log(`Scheduler finished. Published ${published} item(s); ${waiting} item(s) still waiting.`);
 }
 
 main().catch(error => {
