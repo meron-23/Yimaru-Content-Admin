@@ -51,6 +51,16 @@ With GitHub Actions:
 
 The GitHub Actions worker source is in `functions/src/runScheduled.ts`.
 
+### Fixing Vercel image uploads
+
+Firebase Storage needs a bucket CORS policy for browser uploads from Vercel. The policy is in [storage.cors.json](storage.cors.json). Run this command in Google Cloud Shell or on a machine with the Google Cloud CLI installed:
+
+```bash
+gcloud storage buckets update gs://content-admin-46278.firebasestorage.app --cors-file=storage.cors.json
+```
+
+If the bucket name shown in Firebase Console is different, use that exact bucket name after `gs://`. After updating CORS, wait a few minutes, refresh the Vercel app, and retry the upload. Firebase Storage Rules must also allow the current user to write to `images/`.
+
 ---
 
 ## React + TypeScript + Vite

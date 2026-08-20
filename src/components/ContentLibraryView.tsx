@@ -148,7 +148,7 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
 
           <button
             onClick={onOpenCreate}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--brand-primary)] hover:opacity-90 text-white text-xs font-bold shadow-md shadow-[var(--brand-primary)]/20 active:scale-95 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#9A288D] hover:bg-[#812175] text-white text-xs font-bold shadow-md shadow-[#9A288D]/20 active:scale-95 transition"
           >
             <Plus className="w-4 h-4" />
             <span>Create Content</span>

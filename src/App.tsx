@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import type { ContentItem } from './types/content';
 import {
   getContentItems,
@@ -19,13 +20,18 @@ import { TelegramPreviewModal } from './components/TelegramPreviewModal';
 import { ApprovalModal } from './components/ApprovalModal';
 import { ScheduleModal } from './components/ScheduleModal';
 import { ToastContainer } from './components/Toast';
+import { LoginPage } from './components/LoginPage';
 import type { ToastMessage } from './components/Toast';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { getFirebaseInstance } from './services/firebase';
 
 // We define ActiveTab type for any legacy components that still import it from App.tsx
 export type ActiveTab = 'dashboard' | 'content' | 'upcoming' | 'published';
 
 function AppContent() {
+  const { auth } = getFirebaseInstance();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [items, setItems] = useState<ContentItem[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -62,8 +68,23 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    return onAuthStateChanged(auth, currentUser => {
+      setUser(currentUser);
+      setIsAuthLoading(false);
+    });
+  }, [auth]);
+
+  useEffect(() => {
+    if (user) loadData();
+  }, [user, loadData]);
+
+  if (isAuthLoading) {
+    return <div className="min-h-screen bg-slate-950" />;
+  }
+
+  if (!user) {
+    return <LoginPage onSignIn={(email, password) => signInWithEmailAndPassword(auth, email, password).then(() => undefined)} />;
+  }
 
   // Create / Edit Handlers
   const handleOpenCreate = () => {
@@ -247,6 +268,7 @@ function AppContent() {
       <Sidebar 
         onOpenCreateModal={handleOpenCreate} 
         pendingCount={pendingCount} 
+        onSignOut={() => signOut(auth)}
       />
 
       {/* Main Content Body */}

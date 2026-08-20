@@ -4,6 +4,8 @@ import { getFirestore } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import type { FirebaseStorage } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
+import type { Auth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCx6Oz9ga8kMATnv8kuR7gQ0cFOTISYrsc",
@@ -19,7 +21,7 @@ let firebaseApp: FirebaseApp;
 let firestoreDb: Firestore;
 let firebaseStorage: FirebaseStorage;
 
-export function getFirebaseInstance(): { app: FirebaseApp; db: Firestore; storage: FirebaseStorage } {
+export function getFirebaseInstance(): { app: FirebaseApp; db: Firestore; storage: FirebaseStorage; auth: Auth } {
   try {
     if (!getApps().length) {
       firebaseApp = initializeApp(firebaseConfig);
@@ -30,7 +32,7 @@ export function getFirebaseInstance(): { app: FirebaseApp; db: Firestore; storag
     if (!firestoreDb) firestoreDb = getFirestore(firebaseApp);
     if (!firebaseStorage) firebaseStorage = getStorage(firebaseApp);
 
-    return { app: firebaseApp, db: firestoreDb, storage: firebaseStorage };
+    return { app: firebaseApp, db: firestoreDb, storage: firebaseStorage, auth: getAuth(firebaseApp) };
   } catch (err) {
     console.error('Firebase initialization error:', err);
     throw new Error('Failed to initialize Firebase');
