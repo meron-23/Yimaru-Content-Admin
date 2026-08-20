@@ -27,30 +27,47 @@ function getImageDownloadUrl(imageUrl: string): string {
     : imageUrl;
 }
 
-async function createTelegramPhoto(imageUrl: string): Promise<Blob> {
+async function downloadTelegramImage(imageUrl: string): Promise<{ blob: Blob; filename: string; method: 'sendPhoto' | 'sendDocument'; field: 'photo' | 'document' }> {
   const response = await fetch(getImageDownloadUrl(imageUrl));
   if (!response.ok) {
     throw new Error(`Image download failed with status ${response.status}`);
   }
 
   const contentType = response.headers.get('content-type') || '';
-  if (!contentType.startsWith('image/')) {
-    throw new Error(`Image URL returned ${contentType || 'unknown content'} instead of an image. Make the Drive file public.`);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+  const isGif = bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46;
+  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+  const isAvif = bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70 && bytes.slice(8, 12).some((byte, index) => byte === [0x61, 0x76, 0x69, 0x66][index]);
+
+  if (!isJpeg && !isPng && !isGif && !isWebp && !isAvif) {
+    throw new Error(`Image URL returned ${contentType || 'unknown content'} and did not contain a supported image. Make the Drive file public and use JPG or PNG.`);
   }
 
-  return await response.blob();
+  const extension = isJpeg ? 'jpg' : isPng ? 'png' : isGif ? 'gif' : isWebp ? 'webp' : 'avif';
+  const method = isAvif ? 'sendDocument' : 'sendPhoto';
+  return {
+    blob: new Blob([bytes], { type: contentType.startsWith('image/') ? contentType : `image/${extension}` }),
+    filename: `content-image.${extension}`,
+    method,
+    field: isAvif ? 'document' : 'photo'
+  };
 }
 
 async function sendTelegramPost(item: ContentItem): Promise<number> {
   const rendered = renderTelegramPost(item);
   const method = rendered.imageUrl ? 'sendPhoto' : 'sendMessage';
+  let telegramMethod: 'sendPhoto' | 'sendDocument' | 'sendMessage' = method;
   let body: BodyInit;
   let headers: HeadersInit | undefined;
 
   if (rendered.imageUrl) {
+    const image = await downloadTelegramImage(rendered.imageUrl);
+    telegramMethod = image.method;
     const form = new FormData();
     form.append('chat_id', chatId);
-    form.append('photo', await createTelegramPhoto(rendered.imageUrl), 'content-image');
+    form.append(image.field, image.blob, image.filename);
     form.append('caption', rendered.text);
     form.append('parse_mode', 'Markdown');
     if (rendered.buttons.length) {
@@ -67,7 +84,7 @@ async function sendTelegramPost(item: ContentItem): Promise<number> {
     });
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/${telegramMethod}`, {
     method: 'POST',
     headers,
     body
