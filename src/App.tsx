@@ -258,7 +258,6 @@ function AppContent() {
               <Route path="/dashboard" element={
                 <DashboardView
                   items={items}
-                  onOpenCreate={handleOpenCreate}
                   onSelectTab={onNavSelect}
                   onPreviewItem={handleOpenPreview}
                   onReviewItem={handleOpenReview}

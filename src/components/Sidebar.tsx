@@ -7,7 +7,6 @@ import {
   CheckCircle, 
   Plus
 } from 'lucide-react';
-import type { ActiveTab } from '../App';
 
 interface SidebarProps {
   onOpenCreateModal: () => void;

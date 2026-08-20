@@ -2,20 +2,16 @@ import React from 'react';
 import type { ContentItem, ContentType } from '../types/content';
 import { CONTENT_TYPE_METADATA } from '../utils/telegramTemplates';
 import { 
-  FileText, 
   Clock, 
   CheckCircle2, 
   CalendarClock, 
-  Plus, 
   Eye, 
-  Send,
   ArrowRight,
   BarChart3
 } from 'lucide-react';
 
 interface DashboardViewProps {
   items: ContentItem[];
-  onOpenCreate: () => void;
   onSelectTab: (tab: 'content' | 'upcoming' | 'published') => void;
   onPreviewItem: (item: ContentItem) => void;
   onReviewItem: (item: ContentItem) => void;
@@ -23,7 +19,6 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   items,
-  onOpenCreate,
   onSelectTab,
   onPreviewItem,
   onReviewItem
