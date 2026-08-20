@@ -1,5 +1,6 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import sharp from 'sharp';
 import { renderTelegramPost, type ContentItem } from './telegram.js';
 
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -27,7 +28,7 @@ function getImageDownloadUrl(imageUrl: string): string {
     : imageUrl;
 }
 
-async function downloadTelegramImage(imageUrl: string): Promise<{ blob: Blob; filename: string; method: 'sendPhoto' | 'sendDocument'; field: 'photo' | 'document' }> {
+async function downloadTelegramImage(imageUrl: string): Promise<{ blob: Blob; filename: string }> {
   const response = await fetch(getImageDownloadUrl(imageUrl));
   if (!response.ok) {
     throw new Error(`Image download failed with status ${response.status}`);
@@ -46,12 +47,17 @@ async function downloadTelegramImage(imageUrl: string): Promise<{ blob: Blob; fi
   }
 
   const extension = isJpeg ? 'jpg' : isPng ? 'png' : isGif ? 'gif' : isWebp ? 'webp' : 'avif';
-  const method = isAvif ? 'sendDocument' : 'sendPhoto';
+  if (isAvif) {
+    const jpegBytes = await sharp(bytes).jpeg({ quality: 90 }).toBuffer();
+    return {
+      blob: new Blob([new Uint8Array(jpegBytes)], { type: 'image/jpeg' }),
+      filename: 'content-image.jpg'
+    };
+  }
+
   return {
     blob: new Blob([bytes], { type: contentType.startsWith('image/') ? contentType : `image/${extension}` }),
-    filename: `content-image.${extension}`,
-    method,
-    field: isAvif ? 'document' : 'photo'
+    filename: `content-image.${extension}`
   };
 }
 
@@ -64,10 +70,9 @@ async function sendTelegramPost(item: ContentItem): Promise<number> {
 
   if (rendered.imageUrl) {
     const image = await downloadTelegramImage(rendered.imageUrl);
-    telegramMethod = image.method;
     const form = new FormData();
     form.append('chat_id', chatId);
-    form.append(image.field, image.blob, image.filename);
+    form.append('photo', image.blob, image.filename);
     form.append('caption', rendered.text);
     form.append('parse_mode', 'Markdown');
     if (rendered.buttons.length) {
