@@ -30,6 +30,7 @@ export type ActiveTab = 'dashboard' | 'content' | 'upcoming' | 'published';
 
 function AppContent() {
   const { auth } = getFirebaseInstance();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [items, setItems] = useState<ContentItem[]>([]);
@@ -250,7 +251,6 @@ function AppContent() {
     setIsPreviewModalOpen(true);
   };
 
-  const navigate = useNavigate();
   const onNavSelect = (tab: ActiveTab) => {
     const pathMap: Record<ActiveTab, string> = {
       dashboard: '/dashboard',
