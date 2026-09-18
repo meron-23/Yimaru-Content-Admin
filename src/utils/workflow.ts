@@ -144,6 +144,16 @@ export function validateContent(item: Partial<ContentItem>): ValidationError[] {
     } else if (!isValidUrl(item.appUrl)) {
       errors.push({ field: 'appUrl', message: 'Please enter a valid URL (e.g. https://app.example.com/...).' });
     }
+  } else if (type === 'quiz') {
+    if (!item.quizQuestion || !item.quizQuestion.trim()) {
+      errors.push({ field: 'quizQuestion', message: 'The quiz question is required.' });
+    }
+    if (!item.quizOptions || item.quizOptions.filter(o => o.trim()).length < 2) {
+      errors.push({ field: 'quizOptions', message: 'At least 2 answer options are required.' });
+    }
+    if (!item.quizCorrectAnswer || !item.quizCorrectAnswer.trim()) {
+      errors.push({ field: 'quizCorrectAnswer', message: 'The correct answer is required.' });
+    }
   }
 
   if (item.youtubeUrl && item.youtubeUrl.trim() && !isValidUrl(item.youtubeUrl)) {

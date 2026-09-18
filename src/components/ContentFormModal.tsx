@@ -18,7 +18,10 @@ import {
   Save, 
   Send,
   AlertCircle,
-  Link as LinkIcon
+  Link as LinkIcon,
+  HelpCircle,
+  Plus,
+  Trash2
 } from 'lucide-react';
 
 interface ContentFormModalProps {
@@ -150,7 +153,8 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
     phrase: <MessageSquareQuote className="w-5 h-5 text-pink-500" />,
     informative_photo: <ImageIcon className="w-5 h-5 text-emerald-500" />,
     youtube_resource: <Video className="w-5 h-5 text-red-500" />,
-    app_resource: <Smartphone className="w-5 h-5 text-amber-500" />
+    app_resource: <Smartphone className="w-5 h-5 text-amber-500" />,
+    quiz: <HelpCircle className="w-5 h-5" style={{ color: '#9A288D' }} />
   };
 
   return (
@@ -563,6 +567,119 @@ export const ContentFormModal: React.FC<ContentFormModalProps> = ({
                       value={formData.callToAction || ''}
                       onChange={e => handleInputChange('callToAction', e.target.value)}
                       placeholder="📱 Take Quiz in App"
+                      className="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* QUIZ FIELDS */}
+              {contentType === 'quiz' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Quiz Question <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.quizQuestion || ''}
+                      onChange={e => handleInputChange('quizQuestion', e.target.value)}
+                      placeholder="Which sentence uses the correct verb form?"
+                      className="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm"
+                    />
+                    {getFieldError('quizQuestion') && <p className="text-xs text-rose-500 mt-1">{getFieldError('quizQuestion')}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Topic / Category
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.quizTopic || ''}
+                      onChange={e => handleInputChange('quizTopic', e.target.value)}
+                      placeholder="e.g. Grammar, Vocabulary, Pronunciation"
+                      className="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Answer Options <span className="text-rose-500">*</span>
+                      <span className="ml-2 text-[10px] font-normal text-slate-400">(min. 2, max. 6)</span>
+                    </label>
+                    <div className="space-y-2">
+                      {(formData.quizOptions && formData.quizOptions.length > 0 ? formData.quizOptions : ['', '', '', '']).map((opt, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-400 w-5 shrink-0">
+                            {String.fromCharCode(65 + idx)}.
+                          </span>
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={e => {
+                              const opts = [...(formData.quizOptions || ['', '', '', ''])];
+                              opts[idx] = e.target.value;
+                              handleInputChange('quizOptions', opts);
+                            }}
+                            placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                            className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-sm"
+                          />
+                          {(formData.quizOptions || []).length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const opts = [...(formData.quizOptions || [])];
+                                opts.splice(idx, 1);
+                                handleInputChange('quizOptions', opts);
+                              }}
+                              className="p-1 text-slate-400 hover:text-rose-500 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {(formData.quizOptions || []).length < 6 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const opts = [...(formData.quizOptions || ['', '', '', ''])];
+                          opts.push('');
+                          handleInputChange('quizOptions', opts);
+                        }}
+                        className="mt-2 flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-500 hover:border-[#9A288D] hover:text-[#9A288D] transition"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add Option
+                      </button>
+                    )}
+                    {getFieldError('quizOptions') && <p className="text-xs text-rose-500 mt-1">{getFieldError('quizOptions')}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Correct Answer <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.quizCorrectAnswer || ''}
+                      onChange={e => handleInputChange('quizCorrectAnswer', e.target.value)}
+                      placeholder="e.g. B"
+                      className="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm"
+                    />
+                    {getFieldError('quizCorrectAnswer') && <p className="text-xs text-rose-500 mt-1">{getFieldError('quizCorrectAnswer')}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Answer Explanation
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={formData.quizExplanation || ''}
+                      onChange={e => handleInputChange('quizExplanation', e.target.value)}
+                      placeholder="The correct answer is B because third-person singular verbs end in -s."
                       className="w-full px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-sm"
                     />
                   </div>

@@ -119,6 +119,24 @@ export function renderTelegramPost(item: Partial<ContentItem>): RenderedTelegram
       break;
     }
 
+    case 'quiz': {
+      const question = item.quizQuestion || item.title || 'Which sentence is correct?';
+      const options = item.quizOptions && item.quizOptions.length > 0
+        ? item.quizOptions
+        : ['A. She go to school', 'B. She goes to school', 'C. She going to school', 'D. She gone to school'];
+      const topic = item.quizTopic ? ` — ${item.quizTopic}` : '';
+
+      body = `🧠 ENGLISH QUIZ${topic}\n\n`;
+      body += `❓ *${question}*\n\n`;
+      body += options.map(opt => `  ${opt}`).join('\n');
+      body += `\n\n👇 *Reply with your answer!*`;
+
+      if (item.quizExplanation) {
+        body += `\n\n💡 *Answer & Explanation*\n${item.quizExplanation}`;
+      }
+      break;
+    }
+
     default: {
       body = `📢 *${item.title || 'Educational Content'}*\n\n${item.message || item.description || ''}`;
     }
@@ -188,5 +206,12 @@ export const CONTENT_TYPE_METADATA: Record<ContentType, { label: string; icon: s
     description: 'Link directly to app exercises, quizzes, interactive lessons, or features.',
     color: '#f59e0b',
     bg: '#fffbeb'
+  },
+  quiz: {
+    label: 'Quiz',
+    icon: 'HelpCircle',
+    description: 'Post an interactive quiz with multiple choice options for your community to answer.',
+    color: '#9A288D',
+    bg: '#f9f0f9'
   }
 };

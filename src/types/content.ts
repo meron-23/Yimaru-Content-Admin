@@ -4,7 +4,8 @@ export type ContentType =
   | 'phrase'
   | 'informative_photo'
   | 'youtube_resource'
-  | 'app_resource';
+  | 'app_resource'
+  | 'quiz';
 
 export type ContentStatus = 
   | 'DRAFT'
@@ -52,6 +53,13 @@ export interface ContentItem {
   youtubeUrl?: string;
   appUrl?: string;
   
+  // 7. Quiz
+  quizQuestion?: string;
+  quizOptions?: string[];     // Array of answer choices e.g. ["A. run", "B. runs", "C. ran", "D. running"]
+  quizCorrectAnswer?: string; // e.g. "B"
+  quizExplanation?: string;   // Why the answer is correct
+  quizTopic?: string;         // e.g. "Grammar", "Vocabulary", "Pronunciation"
+
   // Custom message body fallback / manual edit
   message?: string;
 
