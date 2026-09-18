@@ -54,7 +54,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     phrase: 0,
     informative_photo: 0,
     youtube_resource: 0,
-    app_resource: 0
+    app_resource: 0,
+    quiz: 0
   };
 
   items.forEach(i => {
