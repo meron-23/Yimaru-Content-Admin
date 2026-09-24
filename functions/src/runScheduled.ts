@@ -61,6 +61,67 @@ async function downloadTelegramImage(imageUrl: string): Promise<{ blob: Blob; fi
   };
 }
 
+/**
+ * Strips optional letter prefix from a poll option, e.g. "A. She goes" → "She goes".
+ * Telegram labels poll options automatically so we don't need them.
+ */
+function stripOptionPrefix(option: string): string {
+  return option.replace(/^[A-Za-z][\.\)\:]\s*/, '').trim();
+}
+
+/**
+ * Sends a quiz content item as a native Telegram quiz poll.
+ * Returns the message_id of the sent poll.
+ */
+async function sendTelegramPoll(item: ContentItem): Promise<number> {
+  const question = (item.quizQuestion || item.title || 'Which is correct?').slice(0, 300);
+  const rawOptions: string[] = (item.quizOptions && item.quizOptions.length >= 2)
+    ? item.quizOptions
+    : ['Option A', 'Option B'];
+
+  // Telegram allows max 10 options, each max 100 chars
+  const options = rawOptions.slice(0, 10).map(o => stripOptionPrefix(o).slice(0, 100));
+
+  // Resolve the correct answer index from the stored letter (e.g. "B" → 1)
+  let correctOptionId = 0;
+  const answerLetter = (item.quizCorrectAnswer || 'A').trim().toUpperCase();
+  const letterIndex = answerLetter.charCodeAt(0) - 65; // 'A'=0, 'B'=1, ...
+  if (letterIndex >= 0 && letterIndex < options.length) {
+    correctOptionId = letterIndex;
+  } else {
+    // Fallback: try to find it by matching the raw option text
+    const matchIdx = rawOptions.findIndex(o =>
+      o.toUpperCase().startsWith(answerLetter + '.') ||
+      o.toUpperCase().startsWith(answerLetter + ')') ||
+      o.toUpperCase().startsWith(answerLetter + ':')
+    );
+    if (matchIdx !== -1) correctOptionId = matchIdx;
+  }
+
+  const explanation = (item.quizExplanation || '').slice(0, 200);
+
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPoll`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      question,
+      options,
+      type: 'quiz',
+      correct_option_id: correctOptionId,
+      explanation: explanation || undefined,
+      explanation_parse_mode: explanation ? 'Markdown' : undefined,
+      is_anonymous: true,
+    })
+  });
+
+  const result = await response.json() as { ok: boolean; description?: string; result?: { message_id: number } };
+  if (!response.ok || !result.ok || !result.result) {
+    throw new Error(result.description || `Telegram sendPoll failed with status ${response.status}`);
+  }
+  return result.result.message_id;
+}
+
 async function sendTelegramPost(item: ContentItem): Promise<number> {
   const rendered = renderTelegramPost(item);
   const method = rendered.imageUrl ? 'sendPhoto' : 'sendMessage';
@@ -118,7 +179,10 @@ async function main(): Promise<void> {
     }
 
     try {
-      const telegramMessageId = await sendTelegramPost(item);
+      // Quiz items use Telegram's native poll (quiz mode); all others use sendMessage/sendPhoto
+      const telegramMessageId = item.contentType === 'quiz'
+        ? await sendTelegramPoll(item)
+        : await sendTelegramPost(item);
       await document.ref.update({
         status: 'PUBLISHED',
         publishedAt: new Date().toISOString(),
