@@ -82,20 +82,21 @@ async function sendTelegramPoll(item: ContentItem): Promise<number> {
   // Telegram allows max 10 options, each max 100 chars
   const options = rawOptions.slice(0, 10).map(o => stripOptionPrefix(o).slice(0, 100));
 
-  // Resolve the correct answer index from the stored letter (e.g. "B" → 1)
+  // quizCorrectAnswer is stored as a 0-based index string (e.g. "1") from the dropdown.
+  // Fall back to letter parsing for any legacy items that stored "A", "B", etc.
   let correctOptionId = 0;
-  const answerLetter = (item.quizCorrectAnswer || 'A').trim().toUpperCase();
-  const letterIndex = answerLetter.charCodeAt(0) - 65; // 'A'=0, 'B'=1, ...
-  if (letterIndex >= 0 && letterIndex < options.length) {
-    correctOptionId = letterIndex;
+  const rawAnswer = (item.quizCorrectAnswer ?? '').trim();
+  const parsedIndex = parseInt(rawAnswer, 10);
+  if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < options.length) {
+    // New format: stored as numeric index
+    correctOptionId = parsedIndex;
   } else {
-    // Fallback: try to find it by matching the raw option text
-    const matchIdx = rawOptions.findIndex(o =>
-      o.toUpperCase().startsWith(answerLetter + '.') ||
-      o.toUpperCase().startsWith(answerLetter + ')') ||
-      o.toUpperCase().startsWith(answerLetter + ':')
-    );
-    if (matchIdx !== -1) correctOptionId = matchIdx;
+    // Legacy format: stored as a letter like "B"
+    const letter = rawAnswer.toUpperCase();
+    const letterIndex = letter.charCodeAt(0) - 65;
+    if (letterIndex >= 0 && letterIndex < options.length) {
+      correctOptionId = letterIndex;
+    }
   }
 
   const explanation = (item.quizExplanation || '').slice(0, 200);
