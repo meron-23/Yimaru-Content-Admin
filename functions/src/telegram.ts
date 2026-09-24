@@ -31,6 +31,12 @@ export type ContentItem = DocumentData & {
   message?: string;
   status?: string;
   scheduledAt?: string;
+  // Quiz fields
+  quizQuestion?: string;
+  quizOptions?: string[];
+  quizCorrectAnswer?: string;
+  quizExplanation?: string;
+  quizTopic?: string;
 };
 
 export function renderTelegramPost(item: ContentItem): { text: string; imageUrl?: string; buttons: TelegramButton[] } {
@@ -65,6 +71,20 @@ export function renderTelegramPost(item: ContentItem): { text: string; imageUrl?
       text = `🚀 APP EXERCISE\n\n📲 *${item.title || 'Practice exercise'}*\n\n${item.description || ''}`;
       if (item.callToAction?.trim()) text += `\n\n⚡ *${item.callToAction}*`;
       break;
+    case 'quiz': {
+      const question = item.quizQuestion || item.title || 'Which sentence is correct?';
+      const options = item.quizOptions && item.quizOptions.length > 0
+        ? item.quizOptions
+        : [];
+      const topic = item.quizTopic ? ` — ${item.quizTopic}` : '';
+      text = `🧠 ENGLISH QUIZ${topic}\n\n❓ *${question}*`;
+      if (options.length > 0) {
+        text += `\n\n${options.map(opt => `  ${opt}`).join('\n')}`;
+      }
+      text += `\n\n👇 *Reply with your answer!*`;
+      if (item.quizExplanation?.trim()) text += `\n\n💡 *Answer & Explanation*\n${item.quizExplanation}`;
+      break;
+    }
     default:
       text = `📢 *${item.title || 'Educational Content'}*\n\n${item.message || item.description || ''}`;
   }
